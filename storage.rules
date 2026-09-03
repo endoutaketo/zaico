@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// Firebase Storageのセキュリティルール。
+// 「productImages/{uid}/...」配下に、そのアカウント本人だけが読み書き・削除できるようにする。
+// Firebaseコンソール → Storage → Rules タブに、この内容を貼り付けて公開してください。
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /productImages/{uid}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 3 * 1024 * 1024 // 1ファイルにつき3MBまで
+                   && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
